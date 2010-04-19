@@ -13,7 +13,7 @@ use File::Spec;
 
 use Win32;
 use Win32::NetAdmin;
-use Win32::Registry;
+use Win32::TieRegistry Delimiter => "/";
 use Win32API::Net 0.13; # for USER_INFO_4 structure
 
 =head1 NAME
@@ -83,24 +83,38 @@ see core doc
 
 sub _fillpwent
 {
-    my %userInfo = @_;
-    my $userName = $userInfo{name};
-    my @pwent = ( @userInfo{'name', 'password', 'userId', 'primaryGroupId'}, undef, $userInfo{'comment'}, undef, $userInfo{'homeDir'} );
-    if( defined( $userInfo{userSid} ) )
+    my $userName = $_[0];
+
+    my %userInfo;
+    if( Win32API::Net::UserGetInfo( "", $userName, 4, \%userInfo ) )
     {
-        my $console;
-        $::HKEY_USERS->Open( $userInfo{userSid} . "\\Console", $console );
-        # find tree item - e.g. %SystemRoot%_system32_cmd.exe
-        push( @pwent, File::Spec->catfile( $ENV{SystemRoot}, 'system32', 'cmd.exe' ) );
-        unless( defined( $userInfo{homeDir} ) )
-        {
-            # complete from registry (HOMEDRIVE+HOMEPATH?, USERPROFILE?)
-        }
+        $userInfo{userId} = $1 if( $userInfo{userSid} =~ m/-(\d+)$/ );
     }
     else
     {
-        push( @pwent, File::Spec->catfile( $ENV{SystemRoot}, 'system32', 'cmd.exe' ) );
+        Win32API::Net::UserGetInfo( "", $userName, 3, \%userInfo )
+            or die "UserGetInfo() failed: $^E";
     }
+
+    if( defined( $userInfo{userSid} ) )
+    {
+        unless( defined( $userInfo{homeDir} ) && ( $userInfo{homeDir} ne '' ) )
+        {
+            my $regPath = "LMachine/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProfileList/" . $userInfo{userSid} . "/ProfileImagePath";
+            $userInfo{homeDir} = $Registry->{$regPath};
+        }
+
+        #my $console;
+        #$::HKEY_USERS->Open( $userInfo{userSid} . "\\Console", $console );
+        # find tree item - e.g. %SystemRoot%_system32_cmd.exe
+        $userInfo{shell} = File::Spec->catfile( $ENV{SystemRoot}, 'system32', 'cmd.exe' );
+
+    }
+    else
+    {
+        $userInfo{shell} = File::Spec->catfile( $ENV{SystemRoot}, 'system32', 'cmd.exe' );
+    }
+    my @pwent = ( @userInfo{'name', 'password', 'userId', 'primaryGroupId', 'maxStorage', 'comment', 'fullName', 'homeDir', 'shell', 'acctExpires'} );
 
     return \@pwent;
 }
@@ -113,14 +127,7 @@ sub _fillpwents
         or die "GetUsers() failed: $^E";
     foreach my $userName (keys %users)
     {
-        my %userInfo;
-        unless( Win32API::Net::UserGetInfo( "", $userName, 3, \%userInfo ) )
-        {
-            Win32API::Net::UserGetInfo( "", $userName, 4, \%userInfo )
-                or die "UserGetInfo() failed: $^E";
-            $userInfo{userId} = $1 if( $userInfo{userSid} =~ m/-(\d)$/ );
-        }
-        push( @pwents, _fillpwent( %userInfo ) );
+        push( @pwents, _fillpwent( $userName ) );
     }
 
     return \@pwents;
@@ -145,14 +152,7 @@ sub endpwent { $pwents = $pwents_pos = undef; }
 sub getpwnam
 {
     my $userName = $_[0];
-    my %userInfo;
-    unless( Win32API::Net::UserGetInfo( "", $userName, 3, \%userInfo ) )
-    {
-        Win32API::Net::UserGetInfo( "", $userName, 4, \%userInfo )
-            or die "UserGetInfo() failed: $^E";
-        $userInfo{userId} = $1 if( $userInfo{userSid} =~ m/-(\d+)$/ );
-    }
-    my $pwent = _fillpwent( %userInfo );
+    my $pwent = _fillpwent( $userName );
     return wantarray ? @$pwent : $pwent->[2];
 }
 
