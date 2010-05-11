@@ -2,18 +2,18 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-          'PL_FILES' => {},
-          'INSTALLDIRS' => 'site',
-          'NAME' => 'Win32::pwent',
-          'EXE_FILES' => [],
-          'VERSION_FROM' => 'lib/Win32/pwent.pm',
-          'PREREQ_PM' => {
-                           'Test::More' => 0,
-                           'Win32::NetAdmin' => '0.11',
-                           'File::Spec' => 0,
-                           'Win32API::Net' => '0.13',
-                           'Win32::Registry' => 0,
-                           'Win32' => 0
-                         }
-        )
+  'PL_FILES' => {},
+  'INSTALLDIRS' => 'site',
+  'NAME' => 'Win32::pwent',
+  'EXE_FILES' => [],
+  'VERSION_FROM' => 'lib/Win32/pwent.pm',
+  'PREREQ_PM' => {
+                   'Test::More' => 0,
+                   'Win32::NetAdmin' => '0.11',
+                   'File::Spec' => 0,
+                   'Win32API::Net' => '0.13',
+                   'Win32::Registry' => 0,
+                   'Win32' => 0
+                 }
+)
 ;

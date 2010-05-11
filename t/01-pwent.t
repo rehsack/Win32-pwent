@@ -23,7 +23,6 @@ is( $pwent[3], $grent[2], 'gid' );
 my $pwentries = 0;
 while( @pwent = Win32::pwent::getpwent() )
 {
-    diag( join( ':', map { defined( $_ ) ? $_ : '' } @pwent ) );
     ++$pwentries;
 }
 Win32::pwent::endpwent();
@@ -36,7 +35,6 @@ is( $userName, $loginName, 'getpwnam' );
 my $grentries = 0;
 while( @grent = Win32::pwent::getgrent() )
 {
-    diag( join( ':', map { defined( $_ ) ? $_ : '' } @grent ) );
     ++$grentries;
 }
 Win32::pwent::endgrent();

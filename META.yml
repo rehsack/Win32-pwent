@@ -1,5 +1,5 @@
 ---
-abstract: 'The great new Win32::pwent!'
+abstract: 'pwent and grent support for Win32'
 author:
   - 'Jens Rehsack <rehsack@cpan.org>'
 build_requires:

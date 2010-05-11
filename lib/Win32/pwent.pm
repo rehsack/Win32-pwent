@@ -7,7 +7,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK);
 use Exporter;
 @ISA = qw(Exporter);
 @EXPORT = qw();
-@EXPORT_OK = qw(endgrent getpwent getpwnam getpwuid entgrent getgrent getgrname getgrgid);
+@EXPORT_OK = qw(endgrent getpwent getpwnam getpwuid entgrent getgrent getgrnam getgrgid);
 
 use File::Spec;
 
@@ -18,66 +18,79 @@ use Win32API::Net 0.13; # for USER_INFO_4 structure
 
 =head1 NAME
 
-Win32::pwent - The great new Win32::pwent!
-
-=head1 VERSION
-
-Version 0.01
+Win32::pwent - pwent and grent support for Win32
 
 =cut
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+    use Win32;
+    use Win32::pwent qw(getpwnam getpwent endpwent);
 
-Perhaps a little code snippet.
+    my $uid = getpwnam(getlogin);
+    my $win32login = Win32::LoginName();
+    while( my @pwent = getpwent )
+    {
+        if( $pwent[0] eq $win32login and $pwent[2] == $uid )
+        {
+            print( "It's me \\o/\n" );
+            endpwent();
+            last;
+        }
+    }
 
-    use Win32::pwent;
+=head1 DESCRIPTION
 
-    my $foo = Win32::pwent->new();
-    ...
+Win32::pwent should help building a bridge for Perl scripts running on
+Unix like systems to Win32.
+
+It supports reading access to LanManager User-Info structures via the
+well known pwent and grent functions.
 
 =head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+Win32::pwent doesn't export anything by default. Following function can
+be imported explicitely: C<endgrent>, C<getpwent>, C<getpwnam>, C<getpwuid>,
+C<entgrent>, C<getgrent>, C<getgrnam>, C<getgrgid>
 
 =head1 SUBROUTINES/METHODS
 
+All exported subroutines behaves as the same ones for Unix-like systems
+provided by Perl itself. See L<http://perldoc.perl.org/>.
+
 =head2 getpwent
 
-see core doc
+see L<http://perldoc.perl.org/functions/getpwent.html>
 
 =head2 getpwnam
 
-see core doc
+see L<http://perldoc.perl.org/functions/getpwnam.html>
 
 =head2 getpwuid
 
-see core doc
+see L<http://perldoc.perl.org/functions/getpwuid.html>
 
 =head2 endpwent
 
-see core doc
+see L<http://perldoc.perl.org/functions/endpwent.html>
 
 =head2 getgrent
 
-see core doc
+see L<http://perldoc.perl.org/functions/getgrent.html>
 
 =head2 getgrnam
 
-see core doc
+see L<http://perldoc.perl.org/functions/getgrnam.html>
 
 =head2 getgrgid
 
-see core doc
+see L<http://perldoc.perl.org/functions/getgruid.html>
 
 =head2 endgrent
 
-see core doc
+see L<http://perldoc.perl.org/functions/getgrnam.html>
 
 =cut
 
@@ -233,21 +246,30 @@ sub getgrgid
 
 Jens Rehsack, C<< <rehsack at cpan.org> >>
 
-=head1 BUGS
+=head1 BUGS AND LIMITATIONS
 
-Please report any bugs or feature requests to C<bug-win32-pwent at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Win32-pwent>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Win32::pwent uses the LAN manager interface, so it might be possible that
+users and groups from Active Directory are not recognized.
 
+All functions provided by Win32::pwent are pure perl functions, so they
+don't provide the additional features the core functions provide, because
+the core implementation handles them as operators.
 
+If you think you've found a bug then please also read "How to Report Bugs
+Effectively" by Simon Tatham:
+L<http://www.chiark.greenend.org.uk/~sgtatham/bugs.html>.
 
+Please report any bugs or feature requests to
+C<bug-win32-pwent at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Win32-pwent>. I will be
+notified, and then you'll automatically be notified of progress on your
+bug as I make changes.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Win32::pwent
-
 
 You can also look for information at:
 
@@ -271,20 +293,23 @@ L<http://search.cpan.org/dist/Win32-pwent/>
 
 =back
 
+Please recognize that the development of Open Source is done in free time of
+volunteers.
 
 =head1 ACKNOWLEDGEMENTS
 
+Jan Dubios from ActiveState who helped me through the required patches for
+L<Win32API::Net> and give a lot feedback regarding compatibility.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Jens Rehsack.
+Copyright (c) 2010 Jens Rehsack.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
 by the Free Software Foundation; or the Artistic License.
 
 See http://dev.perl.org/licenses/ for more information.
-
 
 =cut
 

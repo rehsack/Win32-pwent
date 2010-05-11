@@ -26,3 +26,4 @@ _Inline/.*
 ~$
 .*\.planner
 ^MYMETA.yml$
+Win32-pwent-.*
