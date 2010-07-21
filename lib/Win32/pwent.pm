@@ -7,7 +7,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK);
 use Exporter;
 @ISA = qw(Exporter);
 @EXPORT = qw();
-@EXPORT_OK = qw(endgrent getpwent getpwnam getpwuid entgrent getgrent getgrnam getgrgid);
+@EXPORT_OK = qw(getpwent endpwent setpwent getpwnam getpwuid getgrent entgrent setgrent getgrnam getgrgid);
 
 use File::Spec;
 
@@ -22,7 +22,7 @@ Win32::pwent - pwent and grent support for Win32
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.100';
 
 =head1 SYNOPSIS
 
@@ -62,35 +62,72 @@ provided by Perl itself. See L<http://perldoc.perl.org/>.
 
 =head2 getpwent
 
+Returns the next entry from user list got from LANMAN user database.
+If this is the first call to C<getpwent> (or the first call after an
+C<endpwent> call), a user cache based on the LANMAN database using the
+functions C<GetUsers> and C<UserGetInfo> from the module L<Win32API::Net>
+is created.
+
 see L<http://perldoc.perl.org/functions/getpwent.html>
 
+=head2 endpwent
+
+Free the user list cache and rewind the pointer for the next user entry.
+
+see L<http://perldoc.perl.org/functions/endpwent.html>
+
+=head2 setpwent
+
+Rewind the pointer for the next user entry.
+
+see L<http://perldoc.perl.org/functions/setpwent.html>
+
 =head2 getpwnam
+
+Fetches the user (by name) entry from LANMAN user database and return it
 
 see L<http://perldoc.perl.org/functions/getpwnam.html>
 
 =head2 getpwuid
 
+fetches the user (by user id) entry from LANMAN user database and return it
+
 see L<http://perldoc.perl.org/functions/getpwuid.html>
 
-=head2 endpwent
-
-see L<http://perldoc.perl.org/functions/endpwent.html>
-
 =head2 getgrent
+
+Return the next group entry from LANMAN group database. If this is the first
+call to C<getgrent> (or the first call after an C<endgrent> call), a group
+cache based on the LANMAN database using the functions C<GroupEnum> and
+C<GroupGetInfo> from the module L<Win32API::Net> is created.
+
+see L<http://perldoc.perl.org/functions/getgrent.html>
+
+=head2 endgrent
+
+Free the group list cache and rewind the pointer for the next group entry.
+
+see L<http://perldoc.perl.org/functions/getgrent.html>
+
+=head2 setgrent
+
+Rewind the pointer for the next group entry.
 
 see L<http://perldoc.perl.org/functions/getgrent.html>
 
 =head2 getgrnam
 
+Fetches the group (by name) entry from LANMAN user database and return
+it.  This function doesn't uses the groups cache from getgrent.
+
 see L<http://perldoc.perl.org/functions/getgrnam.html>
 
 =head2 getgrgid
 
+Fetches the group (by group id) entry from LANMAN user database and return
+it.  This function doesn't uses the groups cache from getgrent.
+
 see L<http://perldoc.perl.org/functions/getgruid.html>
-
-=head2 endgrent
-
-see L<http://perldoc.perl.org/functions/getgrnam.html>
 
 =cut
 
@@ -154,11 +191,13 @@ sub getpwent
     unless( "ARRAY" eq ref($pwents) )
     {
         $pwents = _fillpwents();
-        $pwents_pos = 0;
     }
+    defined $pwents_pos or $pwents_pos = 0;
     my @pwent = @{$pwents->[$pwents_pos++]} if( $pwents_pos < scalar(@$pwents) );
     return wantarray ? @pwent : $pwent[2];
 }
+
+sub setpwent { $pwents_pos = undef; }
 
 sub endpwent { $pwents = $pwents_pos = undef; }
 
@@ -218,11 +257,13 @@ sub getgrent
     unless( "ARRAY" eq ref($grents) )
     {
         $grents = _fillgrents();
-        $grents_pos = 0;
     }
+    defined $grents_pos or $grents_pos = 0;
     my @grent = @{$grents->[$grents_pos++]} if( $grents_pos < scalar(@$grents) );
     return wantarray ? @grent : $grent[2];
 }
+
+sub setgrent { $grents_pos = undef; }
 
 sub endgrent { $grents = $grents_pos = undef; }
 
